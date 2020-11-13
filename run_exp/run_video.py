@@ -69,8 +69,11 @@ try:
 	# initialize chrome driver
 	options=Options()
 	chrome_driver = '../abr_browser_dir/chromedriver'
+	# options.add_argument("--headless")
+	options.add_argument('--mse-video-buffer-size-limit-mb=2000')
 	options.add_argument('--user-data-dir=' + chrome_user_dir)
 	options.add_argument('--ignore-certificate-errors')
+	options.add_argument('--autoplay-policy=no-user-gesture-required')
 	driver=webdriver.Chrome(chrome_driver, chrome_options=options)
 	
 	# run chrome

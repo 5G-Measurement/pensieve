@@ -307,6 +307,7 @@ function ScheduleController(config) {
 
     function onStreamCompleted(e) {
         if (e.fragmentModel !== fragmentModel) return;
+        console.log("zry: stream complete. stop scheduler");
         stop();
         isFragmentProcessingInProgress = false;
         log('Stream is complete');
@@ -343,6 +344,7 @@ function ScheduleController(config) {
 
     function onDataUpdateStarted(e) {
         if (e.sender.getStreamProcessor() !== streamProcessor) return;
+        console.log("zry: onDataUpdateStarted. stop scheduler");
         stop();
     }
 
@@ -366,11 +368,13 @@ function ScheduleController(config) {
 
     function onQuotaExceeded(e) {
         if (e.sender.getStreamProcessor() !== streamProcessor) return;
+        console.log("zry : quota exceeded, stop controller");
         stop();
     }
 
     function onURLResolutionFailed() {
         fragmentModel.abortRequests();
+        console.log("zry : url resolution failed, stop controller");
         stop();
     }
 
@@ -514,6 +518,7 @@ function ScheduleController(config) {
             eventBus.off(Events.TIMED_TEXT_REQUESTED, onTimedTextRequested, this);
         }
 
+        console.log("zry : reset, stop controller");
         stop();
         completeQualityChange(false);
         isFragmentProcessingInProgress = false;

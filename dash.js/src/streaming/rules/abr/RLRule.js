@@ -30,9 +30,9 @@
  */
 import SwitchRequest from '../SwitchRequest';
 import MediaPlayerModel from '../../models/MediaPlayerModel';
-import AbrController from '../../controllers/AbrController';
+// import AbrController from '../../controllers/AbrController';
 import FactoryMaker from '../../../core/FactoryMaker';
-import Debug from '../../../core/Debug';
+// import Debug from '../../../core/Debug';
 import {HTTPRequest} from '../../vo/metrics/HTTPRequest';
 
 
@@ -40,7 +40,7 @@ function RLRule(config) {
 
     let instance;
     let context = this.context;
-    let log = Debug(context).getInstance().log;
+    // let log = Debug(context).getInstance().log;
 
     let metricsModel = config.metricsModel;
     let dashMetrics = config.dashMetrics;
@@ -57,7 +57,7 @@ function RLRule(config) {
 
     function execute (rulesContext, callback) {
         // defaults to wanting to make a new request
-        var switchRequest = SwitchRequest(context).create(1000000, SwitchRequest.WEAK, {name: RLRule.__dashjs_factory_name})
+        var switchRequest = SwitchRequest(context).create(1000000, SwitchRequest.WEAK, {name: RLRule.__dashjs_factory_name});
 
         // counts the number of completed and oustanding requests
         let curr_reqs = dashMetrics.getHttpRequests(metricsModel.getReadOnlyMetricsFor('video'));

@@ -8,15 +8,15 @@ NUM_BINS = 100
 BITS_IN_BYTE = 8.0
 MILLISEC_IN_SEC = 1000.0
 M_IN_B = 1000000.0
-VIDEO_LEN = 48
-VIDEO_BIT_RATE = [300, 750, 1200, 1850, 2850, 4300]
+VIDEO_LEN = 79
+VIDEO_BIT_RATE = [2000, 8000, 20000, 40000, 50000, 70000]
 K_IN_M = 1000.0
 REBUF_P = 4.3
 SMOOTH_P = 1
 COLOR_MAP = plt.cm.jet #nipy_spectral, Set1,Paired 
 SIM_DP = 'sim_dp'
-#SCHEMES = ['BB', 'RB', 'FIXED', 'FESTIVE', 'BOLA', 'RL',  'sim_rl', SIM_DP]
-SCHEMES = ['sim_rl', SIM_DP]
+SCHEMES = ['BB', 'RB', 'FIXED', 'FESTIVE', 'BOLA', 'RL',  'sim_rl', SIM_DP]
+# SCHEMES = ['sim_rl', SIM_DP]
 
 def main():
 	time_all = {}

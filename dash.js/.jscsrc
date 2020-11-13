@@ -9,7 +9,7 @@
     "requireSpaceAfterKeywords": true,
     "requireSpaceBeforeBinaryOperators": true,
     "requireSpaceAfterBinaryOperators": true,
-    "requireSpacesInConditionalExpression": true, // Ternary if
+    "requireSpacesInConditionalExpression": true, 
     "requireSpaceBeforeBlockStatements": true,
     "requireSpacesInForStatement": true,
     "requireSpacesInFunctionExpression": {
@@ -27,7 +27,7 @@
         "checkParamExistence": true,
         "checkParamNames": true,
         "requireParamTypes": true,
-        "checkRedundantParams": true,
+        "checkRedundantParams": false,
         "checkReturnTypes": true,
         "checkRedundantReturns": true,
         "requireReturnTypes": true,

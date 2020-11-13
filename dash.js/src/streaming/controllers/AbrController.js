@@ -48,7 +48,7 @@ const ABANDON_LOAD = 'abandonload';
 const ALLOW_LOAD = 'allowload';
 const DEFAULT_VIDEO_BITRATE = 1000;
 const DEFAULT_AUDIO_BITRATE = 100;
-const QUALITY_DEFAULT = 0;
+const QUALITY_DEFAULT = 5;
 //const dashMetrics = this.context.dashMetrics;
 //const metricsModel = this.context.metricsModel;
 
@@ -56,7 +56,7 @@ function AbrController() {
     let context = this.context;
     let eventBus = EventBus(context).getInstance();
     let abrAlgo = -1;
-    let bitrateArray = [200,300,480,750,1200,1850,2850,4300,5300];
+    let bitrateArray = [2000,2000,20000,40000,60000,80000,110000,160000,160000];
     let reservoir = 5;
     let cushion = 10;
     let p_rb = 1;
@@ -130,12 +130,13 @@ function AbrController() {
     function last_chunk_size(lastreq) {
         var tot = 0;
         for ( var tt = 0; tt < lastreq.trace.length; tt++ ) {
-            tot = tot + lastreq.trace[tt]['b'][0];
+            tot = tot + lastreq.trace[tt].b[0];
         }
         return tot;
     }
 
     function next_chunk_size(index, quality) {
+        quality = 5;
         // Racecar video!
         // index is the index of the *next* chunk
         //var size_video1 = [1680951,1637558,1371111,1684293,1400042,1792609,1213669,1191552,1888982,1381292,1593129,1384566,1918298,1605664,1356382,1278860,1580165,1315506,1642869,928190,1416000,865548,1284104,1692271,1504744,1484004,1405086,891371,1401736,1743545,1084561,1099310,1789869,1675658,1636106,1492615,1200522,1787763,1690817,1459339,1250444,1691788,1403315,1732710,1270067,1514363,1615320,1507682,1260622,1784654,1352160,1115913,1637646,1546975,1637443,1475444,1616179,1113960,466635,1727956,1316739,1373312,458410,320487,573826],
@@ -145,15 +146,15 @@ function AbrController() {
         //size_video5 = [207189,219272,134208,204651,164461,230942,136746,150366,193697,193362,189146,153391,195591,177177,190923,155030,185660,164741,179442,131632,198676,115285,148044,181978,200708,177663,176815,109489,203211,196841,161524,151656,182521,172804,211407,171710,170866,178753,175461,184494,154382,206330,175870,178679,173567,172998,189473,172737,163181,181882,186151,164281,172026,173011,162488,201781,176856,137099,57015,234214,172494,184405,61936,43268,81580];
 
         // 9-bitrate weird video with 4 second chunks
-        var size_video1 = [3155849, 2641256, 2410258, 2956927, 2593984, 2387850, 2554662, 2964172, 2541127, 2553367, 2641109, 2876576, 2493400, 2872793, 2304791, 2855882, 2887892, 2474922, 2828949, 2510656, 2544304, 2640123, 2737436, 2559198, 2628069, 2626736, 2809466, 2334075, 2775360, 2910246, 2486226, 2721821, 2481034, 3049381, 2589002, 2551718, 2396078, 2869088, 2589488, 2596763, 2462482, 2755802, 2673179, 2846248, 2644274, 2760316, 2310848, 2647013, 1653424],
-        size_video2 = [2354772, 2123065, 2177073, 2160877, 2233056, 1941625, 2157535, 2290172, 2055469, 2169201, 2173522, 2102452, 2209463, 2275376, 2005399, 2152483, 2289689, 2059512, 2220726, 2156729, 2039773, 2176469, 2221506, 2044075, 2186790, 2105231, 2395588, 1972048, 2134614, 2164140, 2113193, 2147852, 2191074, 2286761, 2307787, 2143948, 1919781, 2147467, 2133870, 2146120, 2108491, 2184571, 2121928, 2219102, 2124950, 2246506, 1961140, 2155012, 1433658],
-        size_video3 = [1728879, 1431809, 1300868, 1520281, 1472558, 1224260, 1388403, 1638769, 1348011, 1429765, 1354548, 1519951, 1422919, 1578343, 1231445, 1471065, 1491626, 1358801, 1537156, 1336050, 1415116, 1468126, 1505760, 1323990, 1383735, 1480464, 1547572, 1141971, 1498470, 1561263, 1341201, 1497683, 1358081, 1587293, 1492672, 1439896, 1139291, 1499009, 1427478, 1402287, 1339500, 1527299, 1343002, 1587250, 1464921, 1483527, 1231456, 1364537, 889412],
-        size_video4 = [1034108, 957685, 877771, 933276, 996749, 801058, 905515, 1060487, 852833, 913888, 939819, 917428, 946851, 1036454, 821631, 923170, 966699, 885714, 987708, 923755, 891604, 955231, 968026, 874175, 897976, 905935, 1076599, 758197, 972798, 975811, 873429, 954453, 885062, 1035329, 1026056, 943942, 728962, 938587, 908665, 930577, 858450, 1025005, 886255, 973972, 958994, 982064, 830730, 846370, 598850],
-        size_video5 = [668286, 611087, 571051, 617681, 652874, 520315, 561791, 709534, 584846, 560821, 607410, 594078, 624282, 687371, 526950, 587876, 617242, 581493, 639204, 586839, 601738, 616206, 656471, 536667, 587236, 590335, 696376, 487160, 622896, 641447, 570392, 620283, 584349, 670129, 690253, 598727, 487812, 575591, 605884, 587506, 566904, 641452, 599477, 634861, 630203, 638661, 538612, 550906, 391450],
-        size_video6 = [450283, 398865, 350812, 382355, 411561, 318564, 352642, 437162, 374758, 362795, 353220, 405134, 386351, 434409, 337059, 366214, 360831, 372963, 405596, 350713, 386472, 399894, 401853, 343800, 359903, 379700, 425781, 277716, 400396, 400508, 358218, 400322, 369834, 412837, 401088, 365161, 321064, 361565, 378327, 390680, 345516, 384505, 372093, 438281, 398987, 393804, 331053, 314107, 255954],
-        size_video7 = [297109, 257647, 226930, 252010, 252014, 204807, 222730, 292466, 251252, 225069, 219214, 264492, 250221, 282653, 203427, 241196, 232278, 236778, 257481, 239090, 249944, 251996, 254755, 214958, 236821, 247419, 273489, 170101, 258518, 256837, 245549, 254516, 228250, 265133, 265921, 228382, 207308, 230319, 231274, 257081, 210478, 247448, 238636, 291475, 257270, 259312, 218276, 191848, 144236],
-        size_video8 = [181801, 155580, 139857, 155432, 163442, 126289, 153295, 173849, 150710, 139105, 141840, 156148, 160746, 179801, 140051, 138313, 143509, 150616, 165384, 140881, 157671, 157812, 163927, 137654, 146754, 153938, 181901, 111155, 153605, 149029, 157421, 157488, 143881, 163444, 179328, 159914, 131610, 124011, 144254, 149991, 147968, 161857, 145210, 172312, 167025, 160064, 137507, 118421, 112270],
-        size_video9 = [133890, 111784, 95894, 102175, 101002, 92343, 88548, 126748, 102390, 95498, 94013, 110671, 105740, 108954, 92294, 104033, 95915, 102560, 106922, 91481, 110690, 101989, 104286, 95009, 99420, 104011, 106609, 75971, 112567, 103483, 106116, 101455, 98710, 108074, 108458, 93513, 95117, 95736, 98502, 101415, 86995, 101211, 99537, 128495, 105578, 109507, 83169, 95190, 56624];
+        var size_video1 = [337339,14912671,24265636,22711544,19639705,20946809,11895609,7597636,56067905,45444680,54798068,69464107,50637608,19559369,22224402,22578365,8346702,15775481,9163235,41307095,28763893,21266416,23702229,27580394,20329780,16109183,58830800,66935122,15251076,16574034,13009028,12791674,11137898,11485310,12428518,9963766,12189364,10142396,10185488,14061455,20074099,46115254,40906522,7891151,21012466,23519424,18715420,17000816,14448126,6958676,9088791,7211881,3063586,2782179,9958410,12158708,12300216,15815684,13526256,11995130,13394791,14135828,15366126,14248439,13843717,14665119,21079187,25480074,23021754,27527834,26155848,17849379,16546531,17718949,17337137,20008245,58430914,16292703,25587422,23982306,13347845,14337991,14584990,13962401,14393788,14649457,13409715,13909605,13301968,19025846,19295426,18261873,19847604,18767181,22420858,19324333,20392234,7671072,17781906,12839336,10779770,14606687,41866951,37238410,14347759,11399187,10358641,14315696,23283631,37521367,22241104,15813346,17116450,18867054,17393609,24759401,25782433,25885372,26242011,23865378,25470681,27258768,17853711,14829893,27779697,27714923,25946474,19596259,23774167,19373656,23977420,24493733,14528511,16841176,16743604,17975224,22329548,16001583,18238584,21308824,17749058,14127787,17525699,14240042,20324139,21993033,18863108,15964734,8284939,9004706,6955279,10701639,9459459,3212828,2509989,2004927,591360,2394426],
+        size_video2 = [337339,14912671,24265636,22711544,19639705,20946809,11895609,7597636,56067905,45444680,54798068,69464107,50637608,19559369,22224402,22578365,8346702,15775481,9163235,41307095,28763893,21266416,23702229,27580394,20329780,16109183,58830800,66935122,15251076,16574034,13009028,12791674,11137898,11485310,12428518,9963766,12189364,10142396,10185488,14061455,20074099,46115254,40906522,7891151,21012466,23519424,18715420,17000816,14448126,6958676,9088791,7211881,3063586,2782179,9958410,12158708,12300216,15815684,13526256,11995130,13394791,14135828,15366126,14248439,13843717,14665119,21079187,25480074,23021754,27527834,26155848,17849379,16546531,17718949,17337137,20008245,58430914,16292703,25587422,23982306,13347845,14337991,14584990,13962401,14393788,14649457,13409715,13909605,13301968,19025846,19295426,18261873,19847604,18767181,22420858,19324333,20392234,7671072,17781906,12839336,10779770,14606687,41866951,37238410,14347759,11399187,10358641,14315696,23283631,37521367,22241104,15813346,17116450,18867054,17393609,24759401,25782433,25885372,26242011,23865378,25470681,27258768,17853711,14829893,27779697,27714923,25946474,19596259,23774167,19373656,23977420,24493733,14528511,16841176,16743604,17975224,22329548,16001583,18238584,21308824,17749058,14127787,17525699,14240042,20324139,21993033,18863108,15964734,8284939,9004706,6955279,10701639,9459459,3212828,2509989,2004927,591360,2394426],
+        size_video3 = [337339,14912671,24132566,21016487,17473873,17432386,9099663,7044111,48103258,28884539,26873304,33588177,25684661,10838546,12783186,13101938,5268213,9838179,6126794,26576979,19285617,14817542,17002609,19316039,13919609,11073078,44076779,49215857,10019282,10921784,8768798,8740660,7610374,7822163,8433079,6951419,8625024,6833121,6808950,9608563,13956444,33926116,29928879,5545322,15180886,16044226,12394633,11196580,9698716,4738333,6072231,4799875,1790651,1529278,6558222,7961846,8148750,10662977,8793419,7475950,8601429,9576793,10221665,8760683,8711578,9417807,14377779,17340552,15365006,19021488,17918889,11843178,10916331,12021075,11809774,13817529,44222240,11574285,17560011,16439864,8847416,9530442,9945160,9471489,9833576,10023423,8908280,9004051,8764764,13175394,14191823,12316520,13245175,12490444,15265366,13365138,13994870,5391903,12114555,8739355,7401667,9761239,30352856,26354219,9662265,7008597,6126549,9409059,16742448,27817780,16060560,11168326,12064050,12122131,10969714,16960361,17875878,17343962,17781436,16547208,17390834,18638649,12036523,9918331,19006737,19028716,18031107,13308895,16649620,13175624,16608135,17077492,9645423,11281629,11179031,12016215,15214650,11200919,12984407,15340646,12480173,9581283,11843441,9470053,13845974,15054391,12467336,10680491,5208724,5906076,4674535,6705784,6312703,2410559,1922862,1128453,517365,1201371],
+        size_video4 = [337243,14912671,22644885,17135714,13114792,11497228,6232523,5425476,29583867,15816325,15275967,20600381,17710542,7412644,9055732,9337721,3201928,6731501,4543558,20277060,14877694,11453319,13274781,14862949,10513690,8329186,34554431,37801487,7180834,7801969,6381056,6393963,5578363,5739662,6190601,5198830,6516530,4960781,4876023,7013013,10250816,26113743,22860019,4146191,11601071,11589115,8720528,7852064,6922163,3458958,4351089,3468038,1235756,1010776,4682485,5642819,5815666,7667415,6118130,5098216,5982646,6905077,7258180,5903236,5922485,6487715,10395993,12476436,10883852,13889966,12943936,8355811,7699623,8697196,8539884,10111273,34025057,8652970,12877164,11975956,6280571,6681274,7178853,6803527,7120614,7243569,6378767,6369153,6270064,9600822,10839240,8798342,9413866,8818409,10884020,9684889,10113016,3986512,8761637,6255843,5347529,6979884,22955881,19576633,6968696,4651140,3942750,6587403,12556616,21334076,12161730,8326048,8972855,8446369,7511410,12247427,13038195,12229430,12704190,12007698,12501375,13457876,8587729,7067075,13578682,13658286,13106871,9469564,12216668,9408461,12195097,12613176,6800911,8020179,7882490,8469705,10869298,8336931,9782551,11598573,9254020,6922363,8494032,6723557,9962942,10840351,8732970,7562882,3563377,4074589,3243768,4688403,4246384,1491121,1146202,447883,279272,803570],
+        size_video5 = [377897,14898753,20421673,13063186,8954217,7325507,4014386,3830488,17832465,9877442,10988410,15230785,13601559,5612759,6789212,7016601,1942216,4718233,3263003,15945082,11785554,9003718,10489883,11644166,8135330,6391364,27018238,29587565,5395812,5799553,4738322,4764193,4183888,4325721,4668463,3966453,5053481,3697571,3577346,5249724,7686878,20100626,17639418,3174755,9032460,8531701,6264914,5629782,5045231,2581365,3233321,2594645,911715,719615,3496204,4154630,4281107,5707279,4397748,3533955,4257694,5050780,5270336,4123549,4164335,4586890,7674948,9132721,7880072,10340109,9558538,6050499,5568885,6422673,6358479,7595952,26329427,6659174,9827222,9075578,4644666,4851731,5349884,5028861,5304043,5390156,4721651,4637025,4630741,7197388,8482578,6443358,6864434,6405222,7920104,7204570,7551736,3037981,6591562,4617597,3982768,5173499,17736300,14917504,5249262,3327042,2811660,4702600,9611993,16684805,9434694,6370300,6846629,6132241,5426584,9064385,9739432,8845382,9324884,8914856,9267595,10030748,6285842,5207162,9939880,10038030,9757084,6892659,9177908,6923540,9283858,9627205,4915398,5898498,5744951,6170363,7991868,6409879,7627654,9016602,6981592,5103310,6244074,4926138,7379602,8011132,6322575,5529168,2585313,3010411,2342869,3304851,2809840,891813,692632,235564,124268,427098],
+        size_video6 = [336477,14648397,17616813,8581118,4726840,3421740,1987360,2185110,9295618,5971357,7669174,10578989,9449433,3829326,4447520,4548277,1103419,2715414,1997555,11199212,8376884,6254528,7313446,8054223,5596063,4316804,18604040,20723782,3622285,3854472,3217701,3212580,2781171,2867806,3105896,2659767,3460653,2382623,2243677,3408862,5061692,13308063,11857920,2182595,6334422,5516229,3897146,3491407,3184630,1728577,2155907,1753721,618968,482994,2354236,2715272,2754002,3700338,2697401,2077748,2596297,2942589,3269601,2472824,2501617,2761582,4894685,5759046,4905689,6695853,6133072,3789723,3478014,4098626,4165439,5066445,18183186,4623087,6754819,6222613,3078962,3080827,3535232,3285443,3494448,3529670,3123898,3029270,3059193,4729676,5966743,4031950,4314280,4037231,4959415,4687332,4811858,2054604,4462862,3046638,2648526,3387394,12176825,10062382,3552565,2139919,1859346,3131242,6479978,11490169,6507505,4368401,4682869,3815757,3334508,5889797,6433588,5638739,6062060,5850985,6118487,6683536,4036556,3322499,6343093,6446252,6361946,4367184,6033322,4507990,6371885,6582726,3090648,3851594,3709626,3979395,5202497,4422067,5339294,6235334,4653534,3314391,4039495,3205850,4848722,5225224,4026891,3588599,1551058,1792688,1471940,2079411,1669374,352526,267244,111836,48639,121164],
+        size_video7 = [334476,11007815,8849724,3191121,1661718,1315024,698359,730082,4047415,2863079,4167844,5571764,4925652,2030157,2240782,2211169,382046,1113969,820127,6357933,4814284,3419258,3944328,4284196,3022025,2248581,9946363,11684632,1849732,1942795,1704756,1697111,1529441,1568649,1677618,1415096,1894067,1186604,1068386,1700843,2536859,4742872,4955535,1260540,3605246,2770338,1855168,1666915,1555467,1008919,1227619,1015853,384076,295687,1328674,1492829,1484812,1868314,1253406,887933,1153403,1249023,1423973,1060162,1080597,1156442,2222640,2587311,2178351,3121089,2857420,1702477,1531670,1863424,1987392,2505586,9620218,2561608,3633991,3324070,1560020,1429188,1754144,1626020,1739228,1722735,1538145,1473412,1498968,2247334,3156442,1895098,1939135,1842874,2235830,2202171,2242042,1081763,2409013,1615028,1413467,1632450,5664827,4578115,1783835,1093613,975642,1658005,3055257,5355572,3278424,2318501,2473561,1730311,1455812,2869222,3226650,2705936,2998622,2928342,3059979,3367422,1950694,1541020,2926720,2991202,3002106,2015412,2894863,2185316,3370605,3492243,1307592,1881404,1806471,1945842,2538877,2298557,2831497,3200905,2180586,1500505,1939246,1599193,2364826,2517454,1883143,1726706,707364,796460,596962,947625,832859,151562,90390,50278,26471,56059],
+        size_video8 = [334476,11007815,8849724,3191121,1661718,1315024,698359,730082,4047415,2863079,4167844,5571764,4925652,2030157,2240782,2211169,382046,1113969,820127,6357933,4814284,3419258,3944328,4284196,3022025,2248581,9946363,11684632,1849732,1942795,1704756,1697111,1529441,1568649,1677618,1415096,1894067,1186604,1068386,1700843,2536859,4742872,4955535,1260540,3605246,2770338,1855168,1666915,1555467,1008919,1227619,1015853,384076,295687,1328674,1492829,1484812,1868314,1253406,887933,1153403,1249023,1423973,1060162,1080597,1156442,2222640,2587311,2178351,3121089,2857420,1702477,1531670,1863424,1987392,2505586,9620218,2561608,3633991,3324070,1560020,1429188,1754144,1626020,1739228,1722735,1538145,1473412,1498968,2247334,3156442,1895098,1939135,1842874,2235830,2202171,2242042,1081763,2409013,1615028,1413467,1632450,5664827,4578115,1783835,1093613,975642,1658005,3055257,5355572,3278424,2318501,2473561,1730311,1455812,2869222,3226650,2705936,2998622,2928342,3059979,3367422,1950694,1541020,2926720,2991202,3002106,2015412,2894863,2185316,3370605,3492243,1307592,1881404,1806471,1945842,2538877,2298557,2831497,3200905,2180586,1500505,1939246,1599193,2364826,2517454,1883143,1726706,707364,796460,596962,947625,832859,151562,90390,50278,26471,56059],
+        size_video9 = [334476,11007815,8849724,3191121,1661718,1315024,698359,730082,4047415,2863079,4167844,5571764,4925652,2030157,2240782,2211169,382046,1113969,820127,6357933,4814284,3419258,3944328,4284196,3022025,2248581,9946363,11684632,1849732,1942795,1704756,1697111,1529441,1568649,1677618,1415096,1894067,1186604,1068386,1700843,2536859,4742872,4955535,1260540,3605246,2770338,1855168,1666915,1555467,1008919,1227619,1015853,384076,295687,1328674,1492829,1484812,1868314,1253406,887933,1153403,1249023,1423973,1060162,1080597,1156442,2222640,2587311,2178351,3121089,2857420,1702477,1531670,1863424,1987392,2505586,9620218,2561608,3633991,3324070,1560020,1429188,1754144,1626020,1739228,1722735,1538145,1473412,1498968,2247334,3156442,1895098,1939135,1842874,2235830,2202171,2242042,1081763,2409013,1615028,1413467,1632450,5664827,4578115,1783835,1093613,975642,1658005,3055257,5355572,3278424,2318501,2473561,1730311,1455812,2869222,3226650,2705936,2998622,2928342,3059979,3367422,1950694,1541020,2926720,2991202,3002106,2015412,2894863,2185316,3370605,3492243,1307592,1881404,1806471,1945842,2538877,2298557,2831497,3200905,2180586,1500505,1939246,1599193,2364826,2517454,1883143,1726706,707364,796460,596962,947625,832859,151562,90390,50278,26471,56059];
 
         // 9-bitrate wierd video with 2 second chunks
         //var size_video1 = [1535564, 1620285, 1269756, 1371500, 1299593, 1110665, 1537560, 1419367, 1443640, 1150344, 1048950, 1338900, 1251304, 1303358, 1481963, 1482209, 1279246, 1261881, 1294098, 1259269, 1288054, 1353055, 1551507, 1325069, 1198053, 1295347, 1521939, 1350854, 1336747, 968044, 1440635, 1415247, 1160228, 1727664, 1187073, 1287849, 1415619, 1413330, 1002890, 1507766, 1242136, 1302168, 1388401, 1251722, 1416202, 1321234, 1178151, 1381047, 1483665, 1144404, 1306854, 1319882, 1589851, 1219615, 1039973, 1294102, 1508564, 1266796, 1594067, 1316179, 1300219, 1186007, 1375130, 1346691, 1162886, 1318148, 1369247, 1680134, 1305914, 1283088, 1324467, 1227251, 1218548, 1177530, 1317341, 1551747, 1138380, 1451108, 1452943, 1143820, 1205956, 1256526, 1423203, 1332599, 1379156, 1294023, 1575368, 1270880, 1324969, 1319305, 1266576, 1493740, 1211363, 1099485, 1352346, 1294667, 826712],
@@ -170,7 +171,7 @@ function AbrController() {
         // upper number is 96 if 2 second chunks for weird video
         // if 4 second chunks, make that number 48
         // 64 for old video (racecar)
-        if (index < 0 || index >48) {
+        if (index < 0 || index > 157) {
             return 0;
         }
         var chunkSize = [size_video1[index], size_video2[index], size_video3[index], size_video4[index], size_video5[index], size_video6[index], size_video7[index], size_video8[index], size_video9[index]];
@@ -232,8 +233,8 @@ function AbrController() {
     }
 
     function getBitrateFestive(prevQuality, bufferLevel, bwPrediction, lastRequested, bitrateArray) {
-        var self = this, 
-        bitrate = 0,
+        // var self = this, 
+        var bitrate = 0,
         tmpBitrate = 0,
         b_target = 0,
         b_ref = 0,
@@ -246,6 +247,8 @@ function AbrController() {
         lastIndex = lastRequested;
         // 2. compute b_target
         tmpBitrate = p*bwPrediction;
+        console.log("zry: bitrate prev " + prevQuality);
+        console.log("zry: tmpBitrate " + tmpBitrate);
         for (var i = 9; i>=0; i--) { // todo: use bitrateArray.length
             if (bitrateArray[i] <= tmpBitrate) {
                 b_target = i;
@@ -289,8 +292,8 @@ function AbrController() {
     }
 
     function predict_throughput(lastRequested, lastQuality, lastHTTPRequest) {
-        var self = this,
-        bandwidthEst = 0,
+        // var self = this,
+        var bandwidthEst = 0,
         lastDownloadTime,
         lastThroughput,
         lastChunkSize,
@@ -342,8 +345,8 @@ function AbrController() {
     }
 
     function getBitrateBB(bLevel) {
-        var self = this,
-        tmpBitrate = 0,
+        // var self = this,
+        var tmpBitrate = 0,
         tmpQuality = 0;
         if (bLevel <= reservoir) {
             tmpBitrate = bitrateArray[0];
@@ -354,7 +357,7 @@ function AbrController() {
         }
         
         // findout matching quality level
-        for (var i = 9; i>=0; i--) {
+        for (var i = 7; i>=2; i--) {
             if (tmpBitrate >= bitrateArray[i]) {
                 tmpQuality = i;
                 break;
@@ -362,26 +365,26 @@ function AbrController() {
             tmpQuality = i;
         }
         //return 9;
-        return tmpQuality;
+        return tmpQuality - 2;
         // return 0;
     }
 
     function getBitrateRB(bandwidth) {
-        var self = this,
-        tmpBitrate = 0,
+        // var self = this,
+        var tmpBitrate = 0,
         tmpQuality = 0;
         
         tmpBitrate = bandwidth*p_rb;
         
         // findout matching quality level
-        for (var i = 9; i>=0; i--) {
+        for (var i = 7; i>=2; i--) {
             if (tmpBitrate >= bitrateArray[i]) {
                 tmpQuality = i;
                 break;
             }
             tmpQuality = i;
         }
-        return tmpQuality;  
+        return tmpQuality - 2;  
         // return 0;
     }
 
@@ -457,7 +460,7 @@ function AbrController() {
         return NaN;
     }
 
-    //TODO  change bitrateDict structure to hold one object for video and audio with initial and max values internal.
+    // TODO  change bitrateDict structure to hold one object for video and audio with initial and max values internal.
     // This means you need to update all the logic around initial bitrate DOMStorage, RebController etc...
     function setMaxAllowedBitrateFor(type, value) {
         bitrateDict.max = bitrateDict.max || {};
@@ -506,9 +509,10 @@ function AbrController() {
         //var lastHTTPRequest = dashMetrics.getHttpRequests(metricsModel.getReadOnlyMetricsFor('video'))[lastRequested];
         var lastHTTPRequest = dashMetrics.getCurrentHttpRequest(metrics);
         var bandwidthEst = predict_throughput(lastRequested, lastQuality, lastHTTPRequest);
+        var xhr, data, bufferLevelAdjusted;
         switch(abrAlgo) {
             case 2:
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -517,12 +521,13 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'BB', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'BB', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
+                console.log("Algorithm: Buffer based!!!");
                 return getBitrateBB(buffer);
             case 3:
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -531,13 +536,14 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'RB', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'RB', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
+                console.log("Algorithm: Rate based!!!");
                 return getBitrateRB(bandwidthEst);
             case 4:
                 var quality = 2;
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -548,14 +554,14 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var bufferLevelAdjusted = buffer-0.15-0.4-4;
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                bufferLevelAdjusted = buffer-0.15-0.4-4;
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
                 console.log("QUALITY RETURNED IS: " + quality);
                 return quality;
             case 5:
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -564,13 +570,14 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Festive', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Festive', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
-                var bufferLevelAdjusted = buffer-0.15-0.4-4;
+                bufferLevelAdjusted = buffer-0.15-0.4-4;
+                console.log("Using FESTIVE now !!!");
                 return getBitrateFestive(lastQuality, bufferLevelAdjusted, bandwidthEst, lastRequested, bitrateArray);
             case 6:
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -579,13 +586,14 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Bola', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Bola', 'lastquality': lastQuality, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
+                console.log("Algorithm: BOLA!!!");
                 return -1;
             default:
                 // defaults to lowest quality always
-                var xhr = new XMLHttpRequest();
+                xhr = new XMLHttpRequest();
                 xhr.open("POST", "http://localhost:8333", false);
                 xhr.onreadystatechange = function() {
                     if ( xhr.readyState == 4 && xhr.status == 200 ) {
@@ -594,8 +602,8 @@ function AbrController() {
                             document.location.reload(true);
                         }
                     }
-                }
-                var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Fixed Quality (0)', 'lastquality': 0, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
+                };
+                data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Fixed Quality (0)', 'lastquality': 0, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                 xhr.send(JSON.stringify(data));
                 return 0;
         }
@@ -628,7 +636,7 @@ function AbrController() {
             }
         };
 
-        //log("ABR enabled? (" + autoSwitchBitrate + ")");
+        console.log("ABR enabled? (" + autoSwitchBitrate + ")");
         if (!getAutoSwitchBitrateFor(type)) {
             if (completedCallback) {
                 completedCallback();
@@ -637,7 +645,7 @@ function AbrController() {
             const rules = abrRulesCollection.getRules(ABRRulesCollection.QUALITY_SWITCH_RULES);
             rulesController.applyRules(rules, streamProcessor, callback, getQualityFor(type, streamInfo), function (currentValue, newValue) {
                 currentValue = currentValue === SwitchRequest.NO_CHANGE ? 0 : currentValue;
-                if ( abrAlgo == 0 ) { // use the default return value
+                if ( abrAlgo === 0 ) { // use the default return value
                     const metrics = metricsModel.getReadOnlyMetricsFor('video');
                     var lastHTTPRequest = dashMetrics.getCurrentHttpRequest(metrics);
                     var bandwidthEst = predict_throughput(lastRequested, lastQuality, lastHTTPRequest);
@@ -651,7 +659,7 @@ function AbrController() {
                                 document.location.reload(true);
                             }
                         }
-                    }
+                    };
                     var bufferLevelAdjusted = buffer-0.15-0.4-4;
                     var data = {'nextChunkSize': next_chunk_size(lastRequested+1), 'Type': 'Default', 'lastquality': 0, 'buffer': buffer, 'bufferAdjusted': bufferLevelAdjusted, 'bandwidthEst': bandwidthEst, 'lastRequest': lastRequested, 'RebufferTime': rebuffer, 'lastChunkFinishTime': lastHTTPRequest._tfinish.getTime(), 'lastChunkStartTime': lastHTTPRequest.tresponse.getTime(), 'lastChunkSize': last_chunk_size(lastHTTPRequest)};
                     xhr.send(JSON.stringify(data));
@@ -671,6 +679,7 @@ function AbrController() {
 
     function setAbrAlgorithm(algo) {
         abrAlgo = algo;
+        console.log("set abr algorithm to " + algo);
     }
 
     function setPlaybackQuality(type, streamInfo, newQuality, reason) {

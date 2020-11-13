@@ -35,6 +35,8 @@ def main():
 
 			(out, err) = proc.communicate()
 
+			print("subprocess message" + out)
+
 			if out == 'done\n':
 				break
 			else:

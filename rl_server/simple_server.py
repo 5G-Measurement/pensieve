@@ -13,14 +13,14 @@ import numpy as np
 import time
 
 
-VIDEO_BIT_RATE = [300,750,1200,1850,2850,4300]  # Kbps
-BITRATE_REWARD = [1, 2, 3, 12, 15, 20]
-BITRATE_REWARD_MAP = {0: 0, 300: 1, 750: 2, 1200: 3, 1850: 12, 2850: 15, 4300: 20}
+VIDEO_BIT_RATE = [20000, 40000, 60000, 80000, 110000, 160000]  # Kbps
+BITRATE_REWARD = [1, 2, 3, 12, 15,20]
+BITRATE_REWARD_MAP = {0: 0, 20000: 1, 40000: 2, 60000: 3, 80000: 12, 110000: 15, 160000: 20}
 M_IN_K = 1000.0
 DEFAULT_QUALITY = 0  # default video quality without agent
 REBUF_PENALTY = 4.3  # 1 sec rebuffering -> this number of Mbps
 SMOOTH_PENALTY = 1
-TOTAL_VIDEO_CHUNKS = 48
+TOTAL_VIDEO_CHUNKS = 157
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
@@ -42,12 +42,18 @@ def make_request_handler(input_dict):
             send_data = ""
 
             if ( 'lastquality' in post_data ):
+                if post_data['lastquality'] == 5:
+                    last_quality = post_data['lastquality']
+                else:
+                    last_quality = post_data['lastquality']
+                print "lastquality exists " + str(post_data['lastquality'])
                 rebuffer_time = float(post_data['RebufferTime'] -self.input_dict['last_total_rebuf'])
                 reward = \
-                   VIDEO_BIT_RATE[post_data['lastquality']] / M_IN_K \
+                   VIDEO_BIT_RATE[last_quality] / M_IN_K \
                    - REBUF_PENALTY * (post_data['RebufferTime'] - self.input_dict['last_total_rebuf']) / M_IN_K \
-                   - SMOOTH_PENALTY * np.abs(VIDEO_BIT_RATE[post_data['lastquality']] -
+                   - SMOOTH_PENALTY * np.abs(VIDEO_BIT_RATE[last_quality] -
                                                   self.input_dict['last_bit_rate']) / M_IN_K
+                # reward = ""
                 # reward = BITRATE_REWARD[post_data['lastquality']] \
                 #         - 8 * rebuffer_time / M_IN_K - np.abs(BITRATE_REWARD[post_data['lastquality']] - BITRATE_REWARD_MAP[self.input_dict['last_bit_rate']])
 
@@ -56,7 +62,7 @@ def make_request_handler(input_dict):
                 
                 # log wall_time, bit_rate, buffer_size, rebuffer_time, video_chunk_size, download_time, reward
                 self.log_file.write(str(time.time()) + '\t' +
-                                    str(VIDEO_BIT_RATE[post_data['lastquality']]) + '\t' +
+                                    str(VIDEO_BIT_RATE[last_quality]) + '\t' +
                                     str(post_data['buffer']) + '\t' +
                                     str(float(post_data['RebufferTime'] - self.input_dict['last_total_rebuf']) / M_IN_K) + '\t' +
                                     str(video_chunk_size) + '\t' +
@@ -65,7 +71,7 @@ def make_request_handler(input_dict):
                 self.log_file.flush()
 
                 self.input_dict['last_total_rebuf'] = post_data['RebufferTime']
-                self.input_dict['last_bit_rate'] = VIDEO_BIT_RATE[post_data['lastquality']]
+                self.input_dict['last_bit_rate'] = VIDEO_BIT_RATE[last_quality]
 
                 if ( post_data['lastRequest'] == TOTAL_VIDEO_CHUNKS ):
                     send_data = "REFRESH"

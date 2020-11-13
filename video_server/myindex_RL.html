@@ -5,12 +5,12 @@
     </head>
     <body>
         <div>
-            <video id="videoPlayer" controls="true"></video>
+            <video id="videoPlayer" width="800" height="600" controls="true"></video>
         </div>
 	<script src="dash.all.min.js"></script>
         <script>
             (function(){
-                var url = "/Manifest.mpd";
+                var url = "4k/4k.mpd";
                 var player = dashjs.MediaPlayer().create()
 
                 var abr_algorithms = {0: 'Default', 1: 'Fixed Rate (0)', 2: 'Buffer Based', 3: 'Rate Based', 4: 'RL', 5: 'Festive', 6: 'Bola'};

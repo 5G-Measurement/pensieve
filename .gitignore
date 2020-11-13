@@ -1,0 +1,15 @@
+video_server/
+run_exp/results/
+run_exp/chrome_retry_log
+cooked_traces/
+rl_server/results/
+rl_server/*.pyc
+selenium-2.39.0/
+test/cooked_traces/
+test/results/
+test/*.pyc
+test/video_size*
+selenium-2.39.0.tar.gz
+google-chrome-stable*
+.DS_Store
+

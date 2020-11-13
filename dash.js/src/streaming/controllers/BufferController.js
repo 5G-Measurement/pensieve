@@ -209,12 +209,15 @@ function BufferController(config) {
 
     function onAppended(e) {
         if (buffer !== e.buffer) return;
+        console.log("zry: appending to source buffer");
 
         if (e.error || !hasEnoughSpaceToAppend()) {
             if (e.error.code === SourceBufferController.QUOTA_EXCEEDED_ERROR_CODE) {
+                console.log("zry: source buffer quota exceed");
                 criticalBufferLevel = sourceBufferController.getTotalBufferedTime(buffer) * 0.8;
             }
             if (e.error.code === SourceBufferController.QUOTA_EXCEEDED_ERROR_CODE || !hasEnoughSpaceToAppend()) {
+                console.log("zry: source buffer quota exceed");
                 eventBus.trigger(Events.QUOTA_EXCEEDED, {sender: instance, criticalBufferLevel: criticalBufferLevel}); //Tells ScheduleController to stop scheduling.
                 clearBuffer(getClearRange()); // Then we clear the buffer and onCleared event will tell ScheduleController to start scheduling again.
             }
