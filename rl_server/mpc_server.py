@@ -36,6 +36,7 @@ SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
 NN_MODEL = None
+startup_time = time.time()
 
 CHUNK_COMBO_OPTIONS = []
 
@@ -62,6 +63,9 @@ def make_request_handler(input_dict):
             self.log_file = input_dict['log_file']
             #self.saver = input_dict['saver']
             self.s_batch = input_dict['s_batch']
+            # hard code the entire trace here
+            self.ground_truth = [78,117,110,108,100,124,109,108,87,116,86,124,8,4,110,75,13,4,116,112,115,98,13,112,91,116,108,95,125,96,54,13,106,107,121,96,101,107,110,112,148,143,195,141,14,44,14,41,30,29,121,119,123,102,106,114,106,83,112,105,110,87,118,106,115,109,110,95,109,112,122,108,111,116,24,9,125,108,47,15,104,89,109,99,108,91,124,59,96,87,31,33,19,97,118,131,140,157,159,182,192,257,292,340,391,500,598,581,272,227,400,624,678,685,717,665,493,718,729,751,92,0,116,104,109,121,105,96,449,791,693,878,969,924,905,760,738,510,22,301,30,67,31,13,39,85,98,125,303,358,14,2,0,61,60,96,111,89,212,276,333,317,335,360,387,410,411,432,439,505,550,571,637,642,602,686,500,549,634,772,887,462,64,501,618,594,657,727,789,656,769,840,765,680,637,637,692,711,705,826,761,637,621,616,554,668,765,704,568,661,575,645,719,692,785,714,701,663,569,548,624,634,658,589,666,325,62,0,31,111]
+            # self.startup_time = time.time()
             #self.a_batch = input_dict['a_batch']
             #self.r_batch = input_dict['r_batch']
             BaseHTTPRequestHandler.__init__(self, *args, **kwargs)
@@ -164,6 +168,10 @@ def make_request_handler(input_dict):
                 for past_val in past_bandwidths:
                     bandwidth_sum += (1/float(past_val))
                 future_bandwidth = 1.0/(bandwidth_sum/len(past_bandwidths))
+                print("future bandwidth est = %d" % future_bandwidth)
+                print("time passed since start: %f" % (time.time()-startup_time))
+                future_bandwidth_truth = self.ground_truth[int(time.time()-startup_time)+1]
+                print("future bandwidth = %d" % future_bandwidth_truth)
 
                 # future chunks length (try 4 if that many remaining)
                 last_index = int(post_data['lastRequest'])
@@ -195,7 +203,7 @@ def make_request_handler(input_dict):
                             curr_buffer = 0
                         else:
                             curr_buffer -= download_time
-                        curr_buffer += 4
+                        curr_buffer += 2
                         
                         # linear reward
                         #bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
@@ -312,6 +320,7 @@ def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
 
 
 def main():
+    startup_time = time.time()
     if len(sys.argv) == 2:
         trace_file = sys.argv[1]
         run(log_file_path=LOG_FILE + '_fastMPC_' + trace_file)
