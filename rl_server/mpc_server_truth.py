@@ -26,7 +26,7 @@ BUFFER_NORM_FACTOR = 10.0
 CHUNK_TIL_VIDEO_END_CAP = 157.0
 TOTAL_VIDEO_CHUNKS = 157
 DEFAULT_QUALITY = 0  # default video quality without agent
-REBUF_PENALTY = 4.3  # 1 sec rebuffering -> this number of Mbps
+REBUF_PENALTY = 160  # 1 sec rebuffering -> this number of Mbps
 SMOOTH_PENALTY = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
 MODEL_SAVE_INTERVAL = 100
@@ -64,7 +64,7 @@ def make_request_handler(input_dict):
             #self.saver = input_dict['saver']
             self.s_batch = input_dict['s_batch']
             # hard code the entire trace here
-            self.ground_truth = [78,117,110,108,100,124,109,108,87,116,86,124,8,4,110,75,13,4,116,112,115,98,13,112,91,116,108,95,125,96,54,13,106,107,121,96,101,107,110,112,148,143,195,141,14,44,14,41,30,29,121,119,123,102,106,114,106,83,112,105,110,87,118,106,115,109,110,95,109,112,122,108,111,116,24,9,125,108,47,15,104,89,109,99,108,91,124,59,96,87,31,33,19,97,118,131,140,157,159,182,192,257,292,340,391,500,598,581,272,227,400,624,678,685,717,665,493,718,729,751,92,0,116,104,109,121,105,96,449,791,693,878,969,924,905,760,738,510,22,301,30,67,31,13,39,85,98,125,303,358,14,2,0,61,60,96,111,89,212,276,333,317,335,360,387,410,411,432,439,505,550,571,637,642,602,686,500,549,634,772,887,462,64,501,618,594,657,727,789,656,769,840,765,680,637,637,692,711,705,826,761,637,621,616,554,668,765,704,568,661,575,645,719,692,785,714,701,663,569,548,624,634,658,589,666,325,62,0,31,111]
+            self.ground_truth = [13.5,12.0,15.0,4.5,10.5,3.0,10.5,12.0,13.5,34.5,52.5,10.5,15.0,12.0,12.0,13.5,12.0,13.5,1.5,12.0,12.0,13.5,13.5,12.0,12.0,7.5,6.0,6.0,4.5,7.5,4.5,13.5,10.5,13.5,15.0,12.0,67.5,64.5,1.5,9.0,12.0,13.5,12.0,13.5,12.0,13.5,13.5,13.5,13.5,13.5,13.5,13.5,72.0,73.5,67.5,90.0,85.5,15.0,82.5,4.5,3.0,4.5,9.0,27.0,63.0,15.0,15.0,30.0,61.5,60.0,49.5,48.0,18.0,3.0,7.5,15.0,12.0,10.5,12.0,12.0,72.0,85.5,15.0,91.5,90.0,105.0,109.5,90.0,97.5,115.5,12.0,13.5,115.5,111.0,144.0,141.0,75.0,15.0,27.0,102.0,114.0,114.0,96.0,84.0,85.5,70.5,36.0,54.0,7.5,13.5,15.0,15.0,16.5,12.0,12.0,105.0,105.0,51.0,45.0,10.5,10.5,42.0,31.5,46.5,34.5,13.5,13.5,12.0,13.5,15.0,13.5,7.5,10.5,27.0,70.5,54.0,7.5,9.0,13.5,12.0,1.5,46.5,66.0,67.5,76.5,79.5,85.5,12.0,13.5,15.0,90.0,88.5,93.0,93.0,88.5,99.0,12.0,112.5,102.0,49.5,7.5,6.0,7.5,15.0,19.5,21.0,25.5,28.5,27.0,19.5,10.5,16.5,25.5,94.5,97.5,106.5,13.5,12.0,9.0,10.5,10.5,13.5,13.5,10.5,15.0,15.0,13.5,10.5,15.0,132.0,112.5,117.0,132.0,126.0,130.5,141.0,130.5,132.0,132.0,142.5,142.5,127.5,127.5,141.0,165.0,100.5,18.0,51.0,42.0,7.5,21.0,25.5,117.0,127.5,112.5,123.0,154.5,154.5,159.0,174.0,175.5,172.5,15.0,10.5,157.5,145.5,154.5,13.5,159.0,171.0,165.0,168.0,169.5,172.5,135.0,133.5,163.5,156.0,157.5,151.5,151.5,130.5,72.0,51.0,115.5,88.5,82.5,64.5,16.5,0.0]
             # self.startup_time = time.time()
             #self.a_batch = input_dict['a_batch']
             #self.r_batch = input_dict['r_batch']
@@ -170,7 +170,15 @@ def make_request_handler(input_dict):
                 future_bandwidth = 1.0/(bandwidth_sum/len(past_bandwidths))
                 print("future bandwidth est = %d" % future_bandwidth)
                 print("time passed since start: %f" % (time.time()-startup_time))
-                future_bandwidth_truth = (self.ground_truth[int(time.time()-startup_time)+1] + self.ground_truth[int(time.time()-startup_time)+2])/2
+
+                future_bandwidth_sum = 0
+                for idx in range(3):
+                    try:
+                        future_bandwidth_sum += (1/self.ground_truth[int(time.time()-startup_time)+idx])
+                    except ZeroDivisionError:
+                        future_bandwidth_sum += 100000    
+                future_bandwidth_truth = 1.0/(future_bandwidth_sum/3)
+                # future_bandwidth_truth = (self.ground_truth[int(time.time()-startup_time)] )/1
                 print("future bandwidth = %d" % future_bandwidth_truth)
 
                 # future chunks length (try 4 if that many remaining)
@@ -197,7 +205,7 @@ def make_request_handler(input_dict):
                     for position in range(0, len(combo)):
                         chunk_quality = combo[position]
                         index = last_index + position + 1 # e.g., if last chunk is 3, then first iter is 3+0+1=4
-                        download_time = (get_chunk_size(chunk_quality, index)/1000000.)/future_bandwidth_truth # this is MB/MB/s --> seconds
+                        download_time = (get_chunk_size(chunk_quality, index)/1000000.)/(future_bandwidth_truth+0.0001) # this is MB/MB/s --> seconds
                         if ( curr_buffer < download_time ):
                             curr_rebuffer_time += (download_time - curr_buffer)
                             curr_buffer = 0
@@ -238,6 +246,8 @@ def make_request_handler(input_dict):
                 # send data to html side (first chunk of best combo)
                 send_data = 0 # no combo had reward better than -1000000 (ERROR) so send 0
                 if ( best_combo != () ): # some combo was good
+                    # print("best combo is")
+                    # print(best_combo)
                     send_data = str(best_combo[0])
 
                 end = time.time()
@@ -250,7 +260,7 @@ def make_request_handler(input_dict):
                     self.input_dict['last_total_rebuf'] = 0
                     self.input_dict['last_bit_rate'] = DEFAULT_QUALITY
                     self.input_dict['video_chunk_coount'] = 0
-                    self.log_file.write('\n')  # so that in the log we know where video ends
+                    # self.log_file.write('\n')  # so that in the log we know where video ends
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/plain')
@@ -323,7 +333,7 @@ def main():
     startup_time = time.time()
     if len(sys.argv) == 2:
         trace_file = sys.argv[1]
-        run(log_file_path=LOG_FILE + '_fastMPC_truth_' + trace_file)
+        run(log_file_path=LOG_FILE + '_truthMPC_' + trace_file)
     else:
         run()
 

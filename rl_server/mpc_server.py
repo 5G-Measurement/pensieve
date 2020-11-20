@@ -26,7 +26,7 @@ BUFFER_NORM_FACTOR = 10.0
 CHUNK_TIL_VIDEO_END_CAP = 157.0
 TOTAL_VIDEO_CHUNKS = 157
 DEFAULT_QUALITY = 0  # default video quality without agent
-REBUF_PENALTY = 4.3  # 1 sec rebuffering -> this number of Mbps
+REBUF_PENALTY = 160  # 1 sec rebuffering -> this number of Mbps
 SMOOTH_PENALTY = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
 MODEL_SAVE_INTERVAL = 100
@@ -206,8 +206,8 @@ def make_request_handler(input_dict):
                         curr_buffer += 2
                         
                         # linear reward
-                        #bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
-                        #smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
+                        bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
+                        smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
 
                         # log reward
                         # log_bit_rate = np.log(VIDEO_BIT_RATE[chunk_quality] / float(VIDEO_BIT_RATE[0]))
@@ -224,13 +224,13 @@ def make_request_handler(input_dict):
                     # bitrates are in Mbits/s, rebuffer in seconds, and smoothness_diffs in Mbits/s
 
                     # linear reward 
-                    #reward = (bitrate_sum/1000.) - (4.3*curr_rebuffer_time) - (smoothness_diffs/1000.)
+                    reward = (bitrate_sum/1000.) - (160*curr_rebuffer_time) - (smoothness_diffs/1000.)
 
                     # log reward
                     # reward = (bitrate_sum) - (4.3*curr_rebuffer_time) - (smoothness_diffs)
 
                     # hd reward
-                    reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
+                    # reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
 
                     if ( reward > max_reward ):
                         max_reward = reward
@@ -250,7 +250,7 @@ def make_request_handler(input_dict):
                     self.input_dict['last_total_rebuf'] = 0
                     self.input_dict['last_bit_rate'] = DEFAULT_QUALITY
                     self.input_dict['video_chunk_coount'] = 0
-                    self.log_file.write('\n')  # so that in the log we know where video ends
+                    # self.log_file.write('\n')  # so that in the log we know where video ends
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/plain')

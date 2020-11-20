@@ -56,6 +56,8 @@ try:
 		command = 'exec /usr/bin/python ../rl_server/mpc_server.py ' + trace_file
 	elif abr_algo == 'robustMPC':
 		command = 'exec /usr/bin/python ../rl_server/robust_mpc_server.py ' + trace_file
+	elif abr_algo == 'MPCtruth':
+		command = 'exec /usr/bin/python ../rl_server/mpc_server_truth.py ' + trace_file
 	else:
 		command = 'exec /usr/bin/python ../rl_server/simple_server.py ' + abr_algo + ' ' + trace_file
 	
@@ -70,7 +72,7 @@ try:
 	options=Options()
 	chrome_driver = '../abr_browser_dir/chromedriver'
 	# options.add_argument("--headless")
-	options.add_argument('--mse-video-buffer-size-limit-mb=2000')
+	options.add_argument('--mse-video-buffer-size-limit-mb=5000')
 	options.add_argument('--user-data-dir=' + chrome_user_dir)
 	options.add_argument('--ignore-certificate-errors')
 	options.add_argument('--autoplay-policy=no-user-gesture-required')

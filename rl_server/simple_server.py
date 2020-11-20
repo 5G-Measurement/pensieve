@@ -18,7 +18,7 @@ BITRATE_REWARD = [1, 2, 3, 12, 15,20]
 BITRATE_REWARD_MAP = {0: 0, 20000: 1, 40000: 2, 60000: 3, 80000: 12, 110000: 15, 160000: 20}
 M_IN_K = 1000.0
 DEFAULT_QUALITY = 0  # default video quality without agent
-REBUF_PENALTY = 4.3  # 1 sec rebuffering -> this number of Mbps
+REBUF_PENALTY = 160  # 1 sec rebuffering -> this number of Mbps
 SMOOTH_PENALTY = 1
 TOTAL_VIDEO_CHUNKS = 157
 SUMMARY_DIR = './results'
@@ -77,7 +77,7 @@ def make_request_handler(input_dict):
                     send_data = "REFRESH"
                     self.input_dict['last_total_rebuf'] = 0
                     self.input_dict['last_bit_rate'] = DEFAULT_QUALITY
-                    self.log_file.write('\n')  # so that in the log we know where video ends
+                    # self.log_file.write('\n')  # so that in the log we know where video ends
 
             self.send_response(200)
             self.send_header('Content-Type', 'text/plain')

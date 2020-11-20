@@ -4,9 +4,9 @@ MILLISECONDS_IN_SECOND = 1000.0
 B_IN_MB = 1000000.0
 BITS_IN_BYTE = 8.0
 RANDOM_SEED = 42
-VIDEO_CHUNCK_LEN = 2000.0  # millisec, every time add this amount to buffer
+VIDEO_CHUNCK_LEN = 1000.0  # millisec, every time add this amount to buffer
 BITRATE_LEVELS = 6
-TOTAL_VIDEO_CHUNCK = 157
+TOTAL_VIDEO_CHUNCK = 158
 BUFFER_THRESH = 60.0 * MILLISECONDS_IN_SECOND  # millisec, max buffer limit
 DRAIN_BUFFER_SLEEP_TIME = 500.0  # millisec
 PACKET_PAYLOAD_PORTION = 0.95
@@ -62,6 +62,7 @@ class Environment:
                          * B_IN_MB / BITS_IN_BYTE
             duration = self.cooked_time[self.mahimahi_ptr] \
                        - self.last_mahimahi_time
+                
 	    
             packet_payload = throughput * duration * PACKET_PAYLOAD_PORTION
 
@@ -88,8 +89,10 @@ class Environment:
         delay *= MILLISECONDS_IN_SECOND
         delay += LINK_RTT
 
-	# add a multiplicative noise to the delay
-	delay *= np.random.uniform(NOISE_LOW, NOISE_HIGH)
+        # add a multiplicative noise to the delay
+        delay *= np.random.uniform(NOISE_LOW, NOISE_HIGH)
+
+        # print("delay is %d" % delay)
 
         # rebuffer time
         rebuf = np.maximum(delay - self.buffer_size, 0.0)
