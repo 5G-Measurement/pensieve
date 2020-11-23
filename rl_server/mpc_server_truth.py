@@ -36,6 +36,11 @@ SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
 # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
 NN_MODEL = None
+truth_bw = []
+trace_file = sys.argv[1]
+with open('../rl_server/traces/'+trace_file+'oneline', 'r') as truth_trace:
+    truth_bw = truth_trace.readline().split(',')[0:-1]
+    truth_bw = [float(i) for i in truth_bw]
 startup_time = time.time()
 
 CHUNK_COMBO_OPTIONS = []
@@ -64,7 +69,7 @@ def make_request_handler(input_dict):
             #self.saver = input_dict['saver']
             self.s_batch = input_dict['s_batch']
             # hard code the entire trace here
-            self.ground_truth = [13.5,12.0,15.0,4.5,10.5,3.0,10.5,12.0,13.5,34.5,52.5,10.5,15.0,12.0,12.0,13.5,12.0,13.5,1.5,12.0,12.0,13.5,13.5,12.0,12.0,7.5,6.0,6.0,4.5,7.5,4.5,13.5,10.5,13.5,15.0,12.0,67.5,64.5,1.5,9.0,12.0,13.5,12.0,13.5,12.0,13.5,13.5,13.5,13.5,13.5,13.5,13.5,72.0,73.5,67.5,90.0,85.5,15.0,82.5,4.5,3.0,4.5,9.0,27.0,63.0,15.0,15.0,30.0,61.5,60.0,49.5,48.0,18.0,3.0,7.5,15.0,12.0,10.5,12.0,12.0,72.0,85.5,15.0,91.5,90.0,105.0,109.5,90.0,97.5,115.5,12.0,13.5,115.5,111.0,144.0,141.0,75.0,15.0,27.0,102.0,114.0,114.0,96.0,84.0,85.5,70.5,36.0,54.0,7.5,13.5,15.0,15.0,16.5,12.0,12.0,105.0,105.0,51.0,45.0,10.5,10.5,42.0,31.5,46.5,34.5,13.5,13.5,12.0,13.5,15.0,13.5,7.5,10.5,27.0,70.5,54.0,7.5,9.0,13.5,12.0,1.5,46.5,66.0,67.5,76.5,79.5,85.5,12.0,13.5,15.0,90.0,88.5,93.0,93.0,88.5,99.0,12.0,112.5,102.0,49.5,7.5,6.0,7.5,15.0,19.5,21.0,25.5,28.5,27.0,19.5,10.5,16.5,25.5,94.5,97.5,106.5,13.5,12.0,9.0,10.5,10.5,13.5,13.5,10.5,15.0,15.0,13.5,10.5,15.0,132.0,112.5,117.0,132.0,126.0,130.5,141.0,130.5,132.0,132.0,142.5,142.5,127.5,127.5,141.0,165.0,100.5,18.0,51.0,42.0,7.5,21.0,25.5,117.0,127.5,112.5,123.0,154.5,154.5,159.0,174.0,175.5,172.5,15.0,10.5,157.5,145.5,154.5,13.5,159.0,171.0,165.0,168.0,169.5,172.5,135.0,133.5,163.5,156.0,157.5,151.5,151.5,130.5,72.0,51.0,115.5,88.5,82.5,64.5,16.5,0.0]
+            self.ground_truth = truth_bw
             # self.startup_time = time.time()
             #self.a_batch = input_dict['a_batch']
             #self.r_batch = input_dict['r_batch']
@@ -172,12 +177,12 @@ def make_request_handler(input_dict):
                 print("time passed since start: %f" % (time.time()-startup_time))
 
                 future_bandwidth_sum = 0
-                for idx in range(3):
+                for idx in range(2):
                     try:
                         future_bandwidth_sum += (1/self.ground_truth[int(time.time()-startup_time)+idx])
                     except ZeroDivisionError:
                         future_bandwidth_sum += 100000    
-                future_bandwidth_truth = 1.0/(future_bandwidth_sum/3)
+                future_bandwidth_truth = 1.0/(future_bandwidth_sum/2)
                 # future_bandwidth_truth = (self.ground_truth[int(time.time()-startup_time)] )/1
                 print("future bandwidth = %d" % future_bandwidth_truth)
 
@@ -214,8 +219,8 @@ def make_request_handler(input_dict):
                         curr_buffer += 2
                         
                         # linear reward
-                        #bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
-                        #smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
+                        bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
+                        smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
 
                         # log reward
                         # log_bit_rate = np.log(VIDEO_BIT_RATE[chunk_quality] / float(VIDEO_BIT_RATE[0]))
@@ -224,21 +229,21 @@ def make_request_handler(input_dict):
                         # smoothness_diffs += abs(log_bit_rate - log_last_bit_rate)
 
                         # hd reward
-                        bitrate_sum += BITRATE_REWARD[chunk_quality]
-                        smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
+                        # bitrate_sum += BITRATE_REWARD[chunk_quality]
+                        # smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
 
                         last_quality = chunk_quality
                     # compute reward for this combination (one reward per 5-chunk combo)
                     # bitrates are in Mbits/s, rebuffer in seconds, and smoothness_diffs in Mbits/s
 
                     # linear reward 
-                    #reward = (bitrate_sum/1000.) - (4.3*curr_rebuffer_time) - (smoothness_diffs/1000.)
+                    reward = (bitrate_sum/1000.) - (160*curr_rebuffer_time) - (smoothness_diffs/1000.)
 
                     # log reward
                     # reward = (bitrate_sum) - (4.3*curr_rebuffer_time) - (smoothness_diffs)
 
                     # hd reward
-                    reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
+                    # reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
 
                     if ( reward > max_reward ):
                         max_reward = reward

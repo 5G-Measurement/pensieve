@@ -30,12 +30,12 @@ then
         do
             echo "replaying with trace file ${trace_file}" # in format of ../cooked_traces/5g....
             filename=$(basename ${trace_file})
-            mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 ${algorithm} 300 0 ${filename} 6
+            mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 ${algorithm} 230 0 ${filename} 6
         done
     else
         filename=$(basename ${trace})
         echo "run for algorithm ${algorithm} for one trace ${filename}"
-        mm-delay 27 mm-link 60mbps ${trace} /usr/bin/python run_video.py 141.212.108.160 ${algorithm} 300 0 ${filename} 6
+        mm-delay 27 mm-link 60mbps ${trace} /usr/bin/python run_video.py 141.212.108.160 ${algorithm} 230 0 ${filename} 6
     fi
 else
     # run for all traces and algos
@@ -52,7 +52,7 @@ else
         mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 RB 230 3 ${filename} 4
         mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 BOLA 230 4 ${filename} 3
         mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 FESTIVE 230 5 ${filename} 2
-        mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 RL 320 9 ${filename} 7
+        mm-delay 27 mm-link 60mbps ${trace_file} /usr/bin/python run_video.py 141.212.108.160 RL 230 9 ${filename} 7
         # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
     done
 fi

@@ -118,7 +118,7 @@ def main():
                 total_playback_time = total_playback_time + 158 + np.sum(np.array(stall_all[scheme][log][:158]))
             else:
                 stall_time_all += float(np.sum(np.array(stall_all[scheme][log], dtype=float))) # seconds
-                total_playback_time = total_playback_time + 230 + np.sum(np.array(stall_all[scheme][log]))
+                total_playback_time = total_playback_time + len(stall_all[scheme][log]) + np.sum(np.array(stall_all[scheme][log]))
         print("total stall time %f" % stall_time_all)
         print("total playback time %f" % total_playback_time)
         # print("pure video time %f" % pure_video_time)

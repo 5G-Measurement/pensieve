@@ -56,7 +56,8 @@ try:
 		command = 'exec /usr/bin/python ../rl_server/mpc_server.py ' + trace_file
 	elif abr_algo == 'robustMPC':
 		command = 'exec /usr/bin/python ../rl_server/robust_mpc_server.py ' + trace_file
-	elif abr_algo == 'MPCtruth':
+	elif abr_algo == 'truthMPC':
+		url = 'http://' + ip + '/' + 'myindex_' + 'fastMPC' + '.html'
 		command = 'exec /usr/bin/python ../rl_server/mpc_server_truth.py ' + trace_file
 	else:
 		command = 'exec /usr/bin/python ../rl_server/simple_server.py ' + abr_algo + ' ' + trace_file

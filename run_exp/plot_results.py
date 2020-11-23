@@ -12,7 +12,7 @@ VIDEO_LEN = 158
 VIDEO_BIT_RATE = [20000, 40000, 60000, 80000, 110000, 160000]
 COLOR_MAP = plt.cm.jet #nipy_spectral, Set1,Paired 
 SIM_DP = 'sim_dp'
-SCHEMES = ['BB', 'RB', 'FESTIVE', 'BOLA', 'RL']
+SCHEMES = ['BB', 'RB', 'FESTIVE', 'BOLA', 'RL', 'fastMPC', 'robustMPC', 'truthMPC']
 
 
 def main():

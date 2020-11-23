@@ -10,7 +10,7 @@ time_length = int(sys.argv[4])
 
 # get bitrate levels (in Mbps)
 min_bitrate = 0.2
-max_bitrate = 4.3
+max_bitrate = 1000
 steps = 10
 bitrate_states_low_var = []
 curr = min_bitrate
