@@ -22,7 +22,7 @@ MPC_FUTURE_CHUNK_COUNT = 5
 # BITRATE_REWARD = [1, 2, 3, 12, 15, 20]
 # BITRATE_REWARD_MAP = {0: 0, 300: 1, 750: 2, 1200: 3, 1850: 12, 2850: 15, 4300: 20}
 VIDEO_BIT_RATE = [20000, 40000, 60000, 80000, 110000, 160000]  # Kbps
-BITRATE_REWARD = [1, 2, 3, 12, 15,20]
+BITRATE_REWARD = [1, 2, 3, 12, 15, 20]
 BITRATE_REWARD_MAP = {0: 0, 20000: 1, 40000: 2, 60000: 3, 80000: 12, 110000: 15, 160000: 20}
 M_IN_K = 1000.0
 BUFFER_NORM_FACTOR = 10.0
@@ -39,6 +39,7 @@ RANDOM_SEED = 42
 RAND_RANGE = 1000
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
+LOG_BW = './bw_prediction/log'
 # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
 NN_MODEL = None
 
@@ -83,6 +84,7 @@ def make_request_handler(input_dict):
         def __init__(self, *args, **kwargs):
             self.input_dict = input_dict
             self.log_file = input_dict['log_file']
+            self.bw_file = input_dict['log_bw']
             #self.saver = input_dict['saver']
             self.s_batch = input_dict['s_batch']
             #self.a_batch = input_dict['a_batch']
@@ -202,7 +204,8 @@ def make_request_handler(input_dict):
                 max_error = float(max(past_errors[error_pos:]))
                 future_bandwidth = harmonic_bandwidth/(1+max_error)
                 past_bandwidth_ests.append(harmonic_bandwidth)
-
+                self.bw_file.write(str(time.time()) + '\t' + str(future_bandwidth) + '\n')
+                self.bw_file.flush()
 
                 # future chunks length (try 4 if that many remaining)
                 last_index = int(post_data['lastRequest'])
@@ -234,11 +237,11 @@ def make_request_handler(input_dict):
                             curr_buffer = 0
                         else:
                             curr_buffer -= download_time
-                        curr_buffer += 2
+                        curr_buffer += 1
                         
                         # linear reward
-                        #bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
-                        #smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
+                        bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
+                        smoothness_diffs += abs(VIDEO_BIT_RATE[chunk_quality] - VIDEO_BIT_RATE[last_quality])
 
                         # log reward
                         # log_bit_rate = np.log(VIDEO_BIT_RATE[chunk_quality] / float(VIDEO_BIT_RATE[0]))
@@ -247,21 +250,21 @@ def make_request_handler(input_dict):
                         # smoothness_diffs += abs(log_bit_rate - log_last_bit_rate)
 
                         # hd reward
-                        bitrate_sum += BITRATE_REWARD[chunk_quality]
-                        smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
+                        # bitrate_sum += BITRATE_REWARD[chunk_quality]
+                        # smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
 
                         last_quality = chunk_quality
                     # compute reward for this combination (one reward per 5-chunk combo)
                     # bitrates are in Mbits/s, rebuffer in seconds, and smoothness_diffs in Mbits/s
                     
                     # linear reward 
-                    #reward = (bitrate_sum/1000.) - (4.3*curr_rebuffer_time) - (smoothness_diffs/1000.)
+                    reward = (bitrate_sum/1000.) - (160*curr_rebuffer_time) - (smoothness_diffs/1000.)
 
                     # log reward
                     # reward = (bitrate_sum) - (4.3*curr_rebuffer_time) - (smoothness_diffs)
 
                     # hd reward
-                    reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
+                    # reward = bitrate_sum - (8*curr_rebuffer_time) - (smoothness_diffs)
 
                     if ( reward > max_reward ):
                         max_reward = reward
@@ -313,7 +316,7 @@ def make_request_handler(input_dict):
     return Request_Handler
 
 
-def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
+def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE, bw_file_path=LOG_BW):
 
     np.random.seed(RANDOM_SEED)
 
@@ -325,35 +328,36 @@ def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
         CHUNK_COMBO_OPTIONS.append(combo)
 
     with open(log_file_path, 'wb') as log_file:
+        with open(bw_file_path, 'wb') as bw_file:
+            s_batch = [np.zeros((S_INFO, S_LEN))]
 
-        s_batch = [np.zeros((S_INFO, S_LEN))]
+            last_bit_rate = DEFAULT_QUALITY
+            last_total_rebuf = 0
+            # need this storage, because observation only contains total rebuffering time
+            # we compute the difference to get
 
-        last_bit_rate = DEFAULT_QUALITY
-        last_total_rebuf = 0
-        # need this storage, because observation only contains total rebuffering time
-        # we compute the difference to get
+            video_chunk_count = 0
 
-        video_chunk_count = 0
+            input_dict = {'log_file': log_file,
+                        'log_bw': bw_file,
+                        'last_bit_rate': last_bit_rate,
+                        'last_total_rebuf': last_total_rebuf,
+                        'video_chunk_coount': video_chunk_count,
+                        's_batch': s_batch}
 
-        input_dict = {'log_file': log_file,
-                      'last_bit_rate': last_bit_rate,
-                      'last_total_rebuf': last_total_rebuf,
-                      'video_chunk_coount': video_chunk_count,
-                      's_batch': s_batch}
+            # interface to abr_rl server
+            handler_class = make_request_handler(input_dict=input_dict)
 
-        # interface to abr_rl server
-        handler_class = make_request_handler(input_dict=input_dict)
-
-        server_address = ('localhost', port)
-        httpd = server_class(server_address, handler_class)
-        print 'Listening on port ' + str(port)
-        httpd.serve_forever()
+            server_address = ('localhost', port)
+            httpd = server_class(server_address, handler_class)
+            print 'Listening on port ' + str(port)
+            httpd.serve_forever()
 
 
 def main():
     if len(sys.argv) == 2:
         trace_file = sys.argv[1]
-        run(log_file_path=LOG_FILE + '_robustMPC_' + trace_file)
+        run(log_file_path=LOG_FILE + '_robustMPC_' + trace_file, bw_file_path=LOG_BW + '_robustMPC_' + trace_file)
     else:
         run()
 

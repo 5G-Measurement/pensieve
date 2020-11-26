@@ -14,4 +14,4 @@ for i in xrange(0, 66):
 # generate 205 files, each 320 seconds for testing
 for i in xrange(0, 205):
     name = "synthetic_traces_complete/testing/trace" + str(i) + ".txt"
-    os.system("python synthetic_traces.py " + str(random.uniform(10, 100)) + " " + str(random.uniform(1,5)) + " " + str(random.uniform(0.05, 0.5)) + " 320 > " + name)
+    os.system("python synthetic_traces.py " + str(random.uniform(10, 100)) + " " + str(random.uniform(1,5)) + " " + str(random.uniform(0.05, 0.5)) + " 230 > " + name)

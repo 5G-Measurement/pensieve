@@ -34,6 +34,7 @@ RANDOM_SEED = 42
 RAND_RANGE = 1000
 SUMMARY_DIR = './results'
 LOG_FILE = './results/log'
+LOG_BW = './bw_prediction/log'
 # in format of time_stamp bit_rate buffer_size rebuffer_time video_chunk_size download_time reward
 NN_MODEL = None
 startup_time = time.time()
@@ -63,6 +64,7 @@ def make_request_handler(input_dict):
             self.log_file = input_dict['log_file']
             #self.saver = input_dict['saver']
             self.s_batch = input_dict['s_batch']
+            self.bw_file = input_dict['log_bw']
             # hard code the entire trace here
             self.ground_truth = [78,117,110,108,100,124,109,108,87,116,86,124,8,4,110,75,13,4,116,112,115,98,13,112,91,116,108,95,125,96,54,13,106,107,121,96,101,107,110,112,148,143,195,141,14,44,14,41,30,29,121,119,123,102,106,114,106,83,112,105,110,87,118,106,115,109,110,95,109,112,122,108,111,116,24,9,125,108,47,15,104,89,109,99,108,91,124,59,96,87,31,33,19,97,118,131,140,157,159,182,192,257,292,340,391,500,598,581,272,227,400,624,678,685,717,665,493,718,729,751,92,0,116,104,109,121,105,96,449,791,693,878,969,924,905,760,738,510,22,301,30,67,31,13,39,85,98,125,303,358,14,2,0,61,60,96,111,89,212,276,333,317,335,360,387,410,411,432,439,505,550,571,637,642,602,686,500,549,634,772,887,462,64,501,618,594,657,727,789,656,769,840,765,680,637,637,692,711,705,826,761,637,621,616,554,668,765,704,568,661,575,645,719,692,785,714,701,663,569,548,624,634,658,589,666,325,62,0,31,111]
             # self.startup_time = time.time()
@@ -168,10 +170,12 @@ def make_request_handler(input_dict):
                 for past_val in past_bandwidths:
                     bandwidth_sum += (1/float(past_val))
                 future_bandwidth = 1.0/(bandwidth_sum/len(past_bandwidths))
-                print("future bandwidth est = %d" % future_bandwidth)
-                print("time passed since start: %f" % (time.time()-startup_time))
+                self.bw_file.write(str(time.time()) + '\t' + str(future_bandwidth) + '\n')
+                self.bw_file.flush()
+                # print("future bandwidth est = %d" % future_bandwidth)
+                # print("time passed since start: %f" % (time.time()-startup_time))
                 future_bandwidth_truth = self.ground_truth[int(time.time()-startup_time)+1]
-                print("future bandwidth = %d" % future_bandwidth_truth)
+                # print("future bandwidth = %d" % future_bandwidth_truth)
 
                 # future chunks length (try 4 if that many remaining)
                 last_index = int(post_data['lastRequest'])
@@ -203,7 +207,7 @@ def make_request_handler(input_dict):
                             curr_buffer = 0
                         else:
                             curr_buffer -= download_time
-                        curr_buffer += 2
+                        curr_buffer += 1
                         
                         # linear reward
                         bitrate_sum += VIDEO_BIT_RATE[chunk_quality]
@@ -216,8 +220,8 @@ def make_request_handler(input_dict):
                         # smoothness_diffs += abs(log_bit_rate - log_last_bit_rate)
 
                         # hd reward
-                        bitrate_sum += BITRATE_REWARD[chunk_quality]
-                        smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
+                        # bitrate_sum += BITRATE_REWARD[chunk_quality]
+                        # smoothness_diffs += abs(BITRATE_REWARD[chunk_quality] - BITRATE_REWARD[last_quality])
 
                         last_quality = chunk_quality
                     # compute reward for this combination (one reward per 5-chunk combo)
@@ -282,7 +286,7 @@ def make_request_handler(input_dict):
     return Request_Handler
 
 
-def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
+def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE, bw_file_path=LOG_BW):
 
     np.random.seed(RANDOM_SEED)
 
@@ -294,36 +298,38 @@ def run(server_class=HTTPServer, port=8333, log_file_path=LOG_FILE):
         CHUNK_COMBO_OPTIONS.append(combo)
 
     with open(log_file_path, 'wb') as log_file:
+        with open(bw_file_path, 'wb') as bw_file:
+            bw_file.write(str(startup_time)+'\n')
+            s_batch = [np.zeros((S_INFO, S_LEN))]
 
-        s_batch = [np.zeros((S_INFO, S_LEN))]
+            last_bit_rate = DEFAULT_QUALITY
+            last_total_rebuf = 0
+            # need this storage, because observation only contains total rebuffering time
+            # we compute the difference to get
 
-        last_bit_rate = DEFAULT_QUALITY
-        last_total_rebuf = 0
-        # need this storage, because observation only contains total rebuffering time
-        # we compute the difference to get
+            video_chunk_count = 0
 
-        video_chunk_count = 0
+            input_dict = {'log_file': log_file,
+                        'log_bw': bw_file,
+                        'last_bit_rate': last_bit_rate,
+                        'last_total_rebuf': last_total_rebuf,
+                        'video_chunk_coount': video_chunk_count,
+                        's_batch': s_batch}
 
-        input_dict = {'log_file': log_file,
-                      'last_bit_rate': last_bit_rate,
-                      'last_total_rebuf': last_total_rebuf,
-                      'video_chunk_coount': video_chunk_count,
-                      's_batch': s_batch}
+            # interface to abr_rl server
+            handler_class = make_request_handler(input_dict=input_dict)
 
-        # interface to abr_rl server
-        handler_class = make_request_handler(input_dict=input_dict)
-
-        server_address = ('localhost', port)
-        httpd = server_class(server_address, handler_class)
-        print 'Listening on port ' + str(port)
-        httpd.serve_forever()
+            server_address = ('localhost', port)
+            httpd = server_class(server_address, handler_class)
+            print 'Listening on port ' + str(port)
+            httpd.serve_forever()
 
 
 def main():
     startup_time = time.time()
     if len(sys.argv) == 2:
         trace_file = sys.argv[1]
-        run(log_file_path=LOG_FILE + '_fastMPC_' + trace_file)
+        run(log_file_path=LOG_FILE + '_fastMPC_' + trace_file, bw_file_path=LOG_BW + '_fastMPC_' + trace_file)
     else:
         run()
 

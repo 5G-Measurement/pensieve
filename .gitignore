@@ -1,6 +1,9 @@
 video_server/
 run_exp/results/
 run_exp/chrome_retry_log
+run_exp/out
+run_exp/*mbps
+run_exp/bw_prediction
 cooked_traces/
 rl_server/results/
 rl_server/*.pyc
@@ -16,3 +19,4 @@ sim/*.pyc
 sim/results/*
 sim/cooked_test_traces/*
 sim/test_results/*
+``

@@ -8,7 +8,7 @@ NUM_BINS = 100
 BITS_IN_BYTE = 8.0
 MILLISEC_IN_SEC = 1000.0
 M_IN_B = 1000000.0
-VIDEO_LEN = 158
+VIDEO_LEN = 100
 VIDEO_BIT_RATE = [20000, 40000, 60000, 80000, 110000, 160000]
 COLOR_MAP = plt.cm.jet #nipy_spectral, Set1,Paired 
 SIM_DP = 'sim_dp'
@@ -61,6 +61,7 @@ def main():
 					buff.append(float(parse[2]))
 					bw.append(float(parse[4]) / float(parse[5]) * BITS_IN_BYTE * MILLISEC_IN_SEC / M_IN_B)
 					reward.append(float(parse[6]))
+					print(float(parse[6]))
 
 		if SIM_DP in log_file:
 			time_ms = time_ms[::-1]
@@ -103,10 +104,14 @@ def main():
 				if scheme == SIM_DP:
 					reward_all[scheme].append(raw_reward_all[scheme][l])
 				else:
+					print("raw reward")
+					print(raw_reward_all[scheme][l][1:VIDEO_LEN])
 					reward_all[scheme].append(np.sum(raw_reward_all[scheme][l][1:VIDEO_LEN]))
 
 	mean_rewards = {}
 	for scheme in SCHEMES:
+		print("calculate mean")
+		print(reward_all[scheme])
 		mean_rewards[scheme] = np.mean(reward_all[scheme])
 
 
