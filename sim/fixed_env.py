@@ -64,7 +64,7 @@ class Environment:
             # print("pick throughput %f, duration %f" % (self.cooked_bw[self.mahimahi_ptr], duration))
             if throughput == 0:
                 print("zero throughput!!!")
-                throughput = 1.0
+                throughput = 0.1
 
             packet_payload = throughput * duration * PACKET_PAYLOAD_PORTION
 

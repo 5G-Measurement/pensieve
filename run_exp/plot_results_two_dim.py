@@ -13,7 +13,7 @@ VIDEO_LEN = 158
 VIDEO_BIT_RATE = [20000, 40000, 60000, 80000, 110000, 160000]
 COLOR_MAP = plt.cm.jet #nipy_spectral, Set1,Paired 
 SIM_DP = 'sim_dp'
-SCHEMES = ['BB', 'RB', 'BOLA', 'RL', 'fastMPC', 'robustMPC', 'truthMPC']
+SCHEMES = ['BB', 'RB', 'BOLA', 'fastMPC', 'robustMPC', 'RL']
 
 
 def main():
@@ -115,6 +115,7 @@ def main():
         print(bitrate_total)
         print(total_chunk)
         print(float(bitrate_total)/total_chunk)
+        print(bitrate_avg_arr)
         summay_all[scheme]['avg_br'] = np.mean(bitrate_avg_arr)
         summay_all[scheme]['all_br'] = bitrate_avg_arr
 
@@ -141,20 +142,20 @@ def main():
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.set_xlim(35, 0)
+    ax.set_xlim(10, 0)
     ax.xaxis.set_major_formatter(mtick.PercentFormatter())
     for scheme in SCHEMES:
         # ax.scatter(summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br'])
         print("stderr for scheme %s are %f, %f" % (scheme, np.std(summay_all[scheme]['all_stalled_rate']), np.std(summay_all[scheme]['all_br'])))
         ax.errorbar(summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br'], xerr=np.std(summay_all[scheme]['all_stalled_rate']), yerr=np.std(summay_all[scheme]['all_br']), capsize=4)
         if scheme == "BOLA":
-            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate']+1, summay_all[scheme]['avg_br']+18))
+            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br']))
         elif scheme == "RB":
-            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate']-0.5, summay_all[scheme]['avg_br']-4))
+            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br']))
         elif scheme == "truthMPC":
-            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate']+5, summay_all[scheme]['avg_br']+1))
+            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br']))
         else:
-            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate']+2, summay_all[scheme]['avg_br']+1))
+            ax.annotate(scheme, (summay_all[scheme]['time_stalled_rate'], summay_all[scheme]['avg_br']))
     
     # colors = [COLOR_MAP(i) for i in np.linspace(0, 1, len(ax.lines))]
     # for i,j in enumerate(ax.lines):

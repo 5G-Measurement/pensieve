@@ -66,7 +66,7 @@ try:
 	sleep(2)
 	
 	# to not display the page in browser
-	display = Display(visible=1, size=(800,600))
+	display = Display(visible=0, size=(800,600))
 	display.start()
 	
 	# initialize chrome driver

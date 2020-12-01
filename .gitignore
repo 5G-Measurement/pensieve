@@ -19,4 +19,3 @@ sim/*.pyc
 sim/results/*
 sim/cooked_test_traces/*
 sim/test_results/*
-``
